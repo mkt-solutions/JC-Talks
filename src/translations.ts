@@ -84,8 +84,7 @@ export const TRANSLATIONS: Record<Language, any> = {
       year: "Year",
       genders: {
         male: "Male",
-        female: "Female",
-        other: "Other"
+        female: "Female"
       }
     }
   },
@@ -172,8 +171,7 @@ export const TRANSLATIONS: Record<Language, any> = {
       year: "Ano",
       genders: {
         male: "Masculino",
-        female: "Feminino",
-        other: "Outro"
+        female: "Feminino"
       }
     }
   },
@@ -260,8 +258,7 @@ export const TRANSLATIONS: Record<Language, any> = {
       year: "Año",
       genders: {
         male: "Masculino",
-        female: "Femenino",
-        other: "Otro"
+        female: "Femenino"
       }
     }
   },
@@ -348,8 +345,7 @@ export const TRANSLATIONS: Record<Language, any> = {
       year: "Année",
       genders: {
         male: "Homme",
-        female: "Femme",
-        other: "Autre"
+        female: "Femme"
       }
     }
   },
@@ -436,8 +432,7 @@ export const TRANSLATIONS: Record<Language, any> = {
       year: "Anno",
       genders: {
         male: "Maschio",
-        female: "Femmina",
-        other: "Altro"
+        female: "Femmina"
       }
     }
   },
@@ -524,8 +519,7 @@ export const TRANSLATIONS: Record<Language, any> = {
       year: "Jahr",
       genders: {
         male: "Männlich",
-        female: "Weiblich",
-        other: "Andere"
+        female: "Weiblich"
       }
     }
   }

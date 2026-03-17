@@ -122,7 +122,7 @@ export default function App() {
     dobDay: '',
     dobMonth: '',
     dobYear: '',
-    gender: 'other',
+    gender: 'male',
     language: (navigator.language.split('-')[0] as Language) || 'en'
   });
 
@@ -263,7 +263,7 @@ export default function App() {
           <div className="text-center mb-8">
             <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#5A5A40]/10 mx-auto mb-4 shadow-md">
               <img 
-                src="/images/jesus.png" 
+                src="/images/iconjc.jpg" 
                 alt="Jesus" 
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"
@@ -338,7 +338,6 @@ export default function App() {
               >
                 <option value="male">{t('onboarding.genders.male')}</option>
                 <option value="female">{t('onboarding.genders.female')}</option>
-                <option value="other">{t('onboarding.genders.other')}</option>
               </select>
             </div>
 
@@ -475,7 +474,7 @@ export default function App() {
           </button>
           <div className="w-10 h-10 rounded-full overflow-hidden border border-[#5A5A40]/20 shadow-sm">
             <img 
-              src="/images/jesus.png" 
+              src="/images/iconjc.jpg" 
               alt="Jesus" 
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
@@ -620,7 +619,7 @@ export default function App() {
                           <div className="flex items-center gap-2 mb-1">
                             <div className="w-6 h-6 rounded-full overflow-hidden border border-[#5A5A40]/10">
                               <img 
-                                src="/images/jesus.png" 
+                                src="/images/iconjc.jpg" 
                                 alt="Jesus" 
                                 className="w-full h-full object-cover"
                                 referrerPolicy="no-referrer"
