@@ -263,7 +263,7 @@ export default function App() {
           <div className="text-center mb-8">
             <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#5A5A40]/10 mx-auto mb-4 shadow-md">
               <img 
-                src="https://images.unsplash.com/photo-1544735038-3571850de3d2?q=80&w=1000&auto=format&fit=crop" 
+                src="/images/jesus.png" 
                 alt="Jesus" 
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"
@@ -475,7 +475,7 @@ export default function App() {
           </button>
           <div className="w-10 h-10 rounded-full overflow-hidden border border-[#5A5A40]/20 shadow-sm">
             <img 
-              src="https://images.unsplash.com/photo-1504052434569-70ad5836ab65?q=80&w=1000&auto=format&fit=crop" 
+              src="/images/jesus.png" 
               alt="Jesus" 
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
@@ -620,7 +620,7 @@ export default function App() {
                           <div className="flex items-center gap-2 mb-1">
                             <div className="w-6 h-6 rounded-full overflow-hidden border border-[#5A5A40]/10">
                               <img 
-                                src="https://images.unsplash.com/photo-1504052434569-70ad5836ab65?q=80&w=1000&auto=format&fit=crop" 
+                                src="/images/jesus.png" 
                                 alt="Jesus" 
                                 className="w-full h-full object-cover"
                                 referrerPolicy="no-referrer"
