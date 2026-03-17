@@ -119,7 +119,9 @@ export default function App() {
   // Onboarding State
   const [onboarding, setOnboarding] = useState({
     name: '',
-    dob: '',
+    dobDay: '',
+    dobMonth: '',
+    dobYear: '',
     gender: 'other',
     language: (navigator.language.split('-')[0] as Language) || 'en'
   });
@@ -186,10 +188,11 @@ export default function App() {
   const handleOnboarding = async (e: React.FormEvent) => {
     e.preventDefault();
     const id = Math.random().toString(36).substring(2, 15);
+    const dob = `${onboarding.dobYear}-${onboarding.dobMonth.padStart(2, '0')}-${onboarding.dobDay.padStart(2, '0')}`;
     const res = await fetch('/api/user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, ...onboarding })
+      body: JSON.stringify({ id, ...onboarding, dob })
     });
     const data = await res.json();
     localStorage.setItem('jctalks_user_id', id);
@@ -285,31 +288,58 @@ export default function App() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-[#1A1A1A] mb-1 flex items-center gap-2">
-                  <Calendar className="w-4 h-4" /> {t('onboarding.dobLabel')}
-                </label>
-                <input
-                  required
-                  type="date"
-                  className="w-full px-4 py-3 rounded-2xl bg-[#F5F2ED] border-none focus:ring-2 focus:ring-[#5A5A40] outline-none transition-all"
-                  value={onboarding.dob}
-                  onChange={e => setOnboarding({ ...onboarding, dob: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-[#1A1A1A] mb-1">{t('onboarding.genderLabel')}</label>
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-[#1A1A1A] flex items-center gap-2">
+                <Calendar className="w-4 h-4" /> {t('onboarding.dobLabel')}
+              </label>
+              <div className="grid grid-cols-3 gap-2">
                 <select
-                  className="w-full px-4 py-3 rounded-2xl bg-[#F5F2ED] border-none focus:ring-2 focus:ring-[#5A5A40] outline-none transition-all"
-                  value={onboarding.gender}
-                  onChange={e => setOnboarding({ ...onboarding, gender: e.target.value })}
+                  required
+                  className="px-4 py-3 rounded-2xl bg-[#F5F2ED] border-none focus:ring-2 focus:ring-[#5A5A40] outline-none transition-all appearance-none"
+                  value={onboarding.dobDay}
+                  onChange={e => setOnboarding({ ...onboarding, dobDay: e.target.value })}
                 >
-                  <option value="male">{t('onboarding.genders.male')}</option>
-                  <option value="female">{t('onboarding.genders.female')}</option>
-                  <option value="other">{t('onboarding.genders.other')}</option>
+                  <option value="" disabled>{t('onboarding.day')}</option>
+                  {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+                <select
+                  required
+                  className="px-4 py-3 rounded-2xl bg-[#F5F2ED] border-none focus:ring-2 focus:ring-[#5A5A40] outline-none transition-all appearance-none"
+                  value={onboarding.dobMonth}
+                  onChange={e => setOnboarding({ ...onboarding, dobMonth: e.target.value })}
+                >
+                  <option value="" disabled>{t('onboarding.month')}</option>
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+                <select
+                  required
+                  className="px-4 py-3 rounded-2xl bg-[#F5F2ED] border-none focus:ring-2 focus:ring-[#5A5A40] outline-none transition-all appearance-none"
+                  value={onboarding.dobYear}
+                  onChange={e => setOnboarding({ ...onboarding, dobYear: e.target.value })}
+                >
+                  <option value="" disabled>{t('onboarding.year')}</option>
+                  {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
                 </select>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#1A1A1A] mb-1">{t('onboarding.genderLabel')}</label>
+              <select
+                className="w-full px-4 py-3 rounded-2xl bg-[#F5F2ED] border-none focus:ring-2 focus:ring-[#5A5A40] outline-none transition-all appearance-none"
+                value={onboarding.gender}
+                onChange={e => setOnboarding({ ...onboarding, gender: e.target.value })}
+              >
+                <option value="male">{t('onboarding.genders.male')}</option>
+                <option value="female">{t('onboarding.genders.female')}</option>
+                <option value="other">{t('onboarding.genders.other')}</option>
+              </select>
             </div>
 
             <div>

@@ -79,6 +79,9 @@ export const TRANSLATIONS: Record<Language, any> = {
       genderLabel: "Gender",
       langLabel: "Language",
       begin: "Begin Journey",
+      day: "Day",
+      month: "Month",
+      year: "Year",
       genders: {
         male: "Male",
         female: "Female",
@@ -164,6 +167,9 @@ export const TRANSLATIONS: Record<Language, any> = {
       genderLabel: "Gênero",
       langLabel: "Idioma",
       begin: "Começar Jornada",
+      day: "Dia",
+      month: "Mês",
+      year: "Ano",
       genders: {
         male: "Masculino",
         female: "Feminino",
@@ -249,6 +255,9 @@ export const TRANSLATIONS: Record<Language, any> = {
       genderLabel: "Género",
       langLabel: "Idioma",
       begin: "Comenzar Jornada",
+      day: "Día",
+      month: "Mes",
+      year: "Año",
       genders: {
         male: "Masculino",
         female: "Femenino",
@@ -334,6 +343,9 @@ export const TRANSLATIONS: Record<Language, any> = {
       genderLabel: "Genre",
       langLabel: "Langue",
       begin: "Commencer le voyage",
+      day: "Jour",
+      month: "Mois",
+      year: "Année",
       genders: {
         male: "Homme",
         female: "Femme",
@@ -419,6 +431,9 @@ export const TRANSLATIONS: Record<Language, any> = {
       genderLabel: "Genere",
       langLabel: "Lingua",
       begin: "Inizia il viaggio",
+      day: "Giorno",
+      month: "Mese",
+      year: "Anno",
       genders: {
         male: "Maschio",
         female: "Femmina",
@@ -504,6 +519,9 @@ export const TRANSLATIONS: Record<Language, any> = {
       genderLabel: "Geschlecht",
       langLabel: "Sprache",
       begin: "Reise beginnen",
+      day: "Tag",
+      month: "Monat",
+      year: "Jahr",
       genders: {
         male: "Männlich",
         female: "Weiblich",
