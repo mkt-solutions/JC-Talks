@@ -3,6 +3,7 @@ import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
 import Database from "better-sqlite3";
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -83,22 +84,49 @@ async function startServer() {
   // Serve static files and handle SPA fallback
   const isProd = process.env.NODE_ENV === "production" || process.env.NODE_ENV === "staging";
   const distPath = path.resolve(__dirname, "dist");
+  const distExists = fs.existsSync(distPath);
 
-  if (isProd) {
+  console.log(`[SERVER] Environment: ${process.env.NODE_ENV}`);
+  console.log(`[SERVER] Dist path: ${distPath}`);
+  console.log(`[SERVER] Dist exists: ${distExists}`);
+
+  // If dist exists, we prefer serving static files for better reliability in Shared App URL
+  if (distExists) {
     console.log(`[PROD] Serving static files from: ${distPath}`);
     app.use(express.static(distPath, { index: "index.html" }));
     app.get("*", (req, res) => {
+      if (req.url.startsWith("/api")) {
+        return res.status(404).json({ error: "API route not found" });
+      }
       console.log(`[PROD] Fallback to index.html for: ${req.url}`);
-      res.sendFile(path.join(distPath, "index.html"));
+      res.sendFile(path.join(distPath, "index.html"), (err) => {
+        if (err) {
+          console.error("[PROD] Error sending index.html:", err);
+          res.status(500).send("Internal Server Error - Missing build artifacts");
+        }
+      });
     });
   } else {
     console.log("[DEV] Using Vite middleware");
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
+    try {
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: "spa",
+      });
+      app.use(vite.middlewares);
+    } catch (err) {
+      console.error("[DEV] Failed to start Vite middleware:", err);
+      app.get("*", (req, res) => {
+        res.status(500).send("Server Error - Failed to start development middleware");
+      });
+    }
   }
+
+  // Error handler
+  app.use((err: any, req: any, res: any, next: any) => {
+    console.error("[SERVER] Unhandled error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  });
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`JC Talks Server started!`);

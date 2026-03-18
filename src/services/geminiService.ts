@@ -3,7 +3,21 @@ import { Message, User, LANGUAGES, Language } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
+function calculateAge(dob: string): number {
+  const birthDate = new Date(dob);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+}
+
 export async function getJesusResponse(messages: Message[], user: User) {
+  const age = calculateAge(user.dob);
+  const isMinor = age < 12;
+
   const contents = messages.length > 0 
     ? messages.map(m => ({
         role: m.role === 'user' ? 'user' : 'model',
@@ -16,7 +30,17 @@ export async function getJesusResponse(messages: Message[], user: User) {
     contents,
     config: {
       systemInstruction: `You are an artificial intelligence inspired by the teachings of Jesus Christ as described in the Bible, bringing the context to today's world in a subtle way, without losing your biblical and sacred essence. Act as if Jesus were living today, but your identity must remain deeply rooted in eternal wisdom.
-      You are talking to ${user.name} (${user.gender}, born on ${user.dob}).
+      You are talking to ${user.name} (${user.gender}, born on ${user.dob}, age: ${age}).
+
+      ${isMinor ? `
+      SAFETY RULE FOR MINORS (UNDER 12):
+      The user is ${age} years old (under 12). You MUST be extremely careful with sensitive themes such as sexuality, drugs, alcohol, and other adult topics. 
+      If these topics arise, you MUST:
+      1. Provide age-appropriate, protective, and simple guidance.
+      2. Strongly reinforce the importance of the user talking to their parents or trusted family members about these subjects.
+      3. Never provide detailed information on adult topics that could be harmful or confusing for a child.
+      4. Maintain a fatherly, protective, and gentle tone.
+      ` : ''}
 
       LANGUAGE RULES:
       1. CRITICAL: The user's preferred language is ${LANGUAGES[user.language as Language] || user.language}. 

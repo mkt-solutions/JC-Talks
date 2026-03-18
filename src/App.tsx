@@ -16,7 +16,8 @@ import {
   CreditCard,
   Info,
   ChevronLeft,
-  Home as HomeIcon
+  Home as HomeIcon,
+  Share2
 } from 'lucide-react';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import Markdown from 'react-markdown';
@@ -106,7 +107,15 @@ const BIBLE_MESSAGES: Record<Language, { text: string; ref: string }[]> = {
 };
 
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>({
+    id: 'test-user',
+    name: 'Visitante',
+    dob: '1990-01-01',
+    gender: 'male',
+    language: 'pt',
+    trial_start_date: new Date().toISOString(),
+    is_subscribed: true
+  });
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -147,17 +156,7 @@ export default function App() {
   const dailyMessage = dailyMessageList[new Date().getDate() % dailyMessageList.length];
 
   useEffect(() => {
-    const savedUserId = localStorage.getItem('jctalks_user_id');
-    if (savedUserId) {
-      fetch(`/api/user/${savedUserId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (!data.error) setUser(data);
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -209,6 +208,20 @@ export default function App() {
     });
     const data = await res.json();
     setUser(data);
+  };
+
+  const handleShare = (text: string, ref: string | null, platform: 'whatsapp' | 'telegram') => {
+    const quote = `"${text}"`;
+    const verse = ref ? `\n\n-${ref}-` : "";
+    const footer = "\n\nJC Talks App";
+    const fullText = quote + verse + footer;
+    const encodedText = encodeURIComponent(fullText);
+    
+    if (platform === 'whatsapp') {
+      window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+    } else {
+      window.open(`https://t.me/share/url?url=&text=${encodedText}`, '_blank');
+    }
   };
 
   const handleSendMessage = async (e?: React.FormEvent) => {
@@ -526,9 +539,23 @@ export default function App() {
                       </p>
                     </div>
                   </div>
-                  <div className="pt-4">
+                  <div className="pt-4 flex flex-col items-center gap-4">
                     <div className="w-12 h-12 bg-[#F5F2ED] rounded-full flex items-center justify-center mx-auto">
                       <Heart className="w-6 h-6 text-[#5A5A40]" />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button 
+                        onClick={() => handleShare(dailyMessage.text, dailyMessage.ref, 'whatsapp')}
+                        className="flex items-center gap-2 px-4 py-2 bg-[#25D366]/10 text-[#25D366] rounded-full hover:bg-[#25D366]/20 transition-all text-xs font-bold"
+                      >
+                        <MessageCircle className="w-4 h-4" /> WhatsApp
+                      </button>
+                      <button 
+                        onClick={() => handleShare(dailyMessage.text, dailyMessage.ref, 'telegram')}
+                        className="flex items-center gap-2 px-4 py-2 bg-[#0088cc]/10 text-[#0088cc] rounded-full hover:bg-[#0088cc]/20 transition-all text-xs font-bold"
+                      >
+                        <Send className="w-4 h-4" /> Telegram
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -616,16 +643,34 @@ export default function App() {
                           : "bg-white text-[#1A1A1A] rounded-tl-none border border-[#5A5A40]/5"
                       )}>
                         {msg.role === 'assistant' && (
-                          <div className="flex items-center gap-2 mb-1">
-                            <div className="w-6 h-6 rounded-full overflow-hidden border border-[#5A5A40]/10">
-                              <img 
-                                src="/images/iconjc.jpg" 
-                                alt="Jesus" 
-                                className="w-full h-full object-cover"
-                                referrerPolicy="no-referrer"
-                              />
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full overflow-hidden border border-[#5A5A40]/10">
+                                <img 
+                                  src="/images/iconjc.jpg" 
+                                  alt="Jesus" 
+                                  className="w-full h-full object-cover"
+                                  referrerPolicy="no-referrer"
+                                />
+                              </div>
+                              <span className="text-[10px] uppercase tracking-widest font-bold text-[#5A5A40]/60">{t('chat.jesus')}</span>
                             </div>
-                            <span className="text-[10px] uppercase tracking-widest font-bold text-[#5A5A40]/60">{t('chat.jesus')}</span>
+                            <div className="flex items-center gap-1">
+                              <button 
+                                onClick={() => handleShare(msg.content, null, 'whatsapp')}
+                                className="p-1 text-[#25D366] hover:bg-[#25D366]/10 rounded-full transition-colors"
+                                title="WhatsApp"
+                              >
+                                <MessageCircle className="w-3 h-3" />
+                              </button>
+                              <button 
+                                onClick={() => handleShare(msg.content, null, 'telegram')}
+                                className="p-1 text-[#0088cc] hover:bg-[#0088cc]/10 rounded-full transition-colors"
+                                title="Telegram"
+                              >
+                                <Send className="w-3 h-3" />
+                              </button>
+                            </div>
                           </div>
                         )}
                         <div className="prose prose-sm prose-stone dark:prose-invert">
@@ -769,45 +814,55 @@ export default function App() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Free Plan */}
+                  {/* Monthly/Quarterly Plan */}
                   <div className="bg-white p-8 rounded-[40px] border border-[#5A5A40]/10 shadow-sm flex flex-col">
                     <div className="mb-8">
-                      <h3 className="text-2xl font-serif mb-2">{t('upgrade.freeTitle')}</h3>
+                      <h3 className="text-2xl font-serif mb-2">{t('upgrade.monthlyTitle')}</h3>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-bold">{t('upgrade.freePrice')}</span>
-                        <span className="text-[#5A5A40]/60">{t('upgrade.freePeriod')}</span>
+                        <span className="text-4xl font-bold">{t('upgrade.monthlyPrice')}</span>
+                        <span className="text-[#5A5A40]/60">{t('upgrade.monthlyPeriod')}</span>
                       </div>
+                      {t('upgrade.monthlySubtext') && (
+                        <p className="text-[#5A5A40]/60 text-sm mt-1">{t('upgrade.monthlySubtext')}</p>
+                      )}
                     </div>
                     <ul className="flex-1 space-y-4 mb-8">
                       <li className="flex items-center gap-3 text-[#5A5A40]/80">
                         <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
                           <Sparkles className="w-3 h-3 text-emerald-600" />
                         </div>
-                        <span>{t('upgrade.features.guidance')}</span>
+                        <span>{t('upgrade.features.unlimited')}</span>
                       </li>
                       <li className="flex items-center gap-3 text-[#5A5A40]/80">
                         <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
                           <Sparkles className="w-3 h-3 text-emerald-600" />
                         </div>
-                        <span>{t('upgrade.features.multiLang')}</span>
+                        <span>{t('upgrade.features.blessings')}</span>
+                      </li>
+                      <li className="flex items-center gap-3 text-[#5A5A40]/80">
+                        <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
+                          <Sparkles className="w-3 h-3 text-emerald-600" />
+                        </div>
+                        <span>{t('upgrade.features.priority')}</span>
                       </li>
                     </ul>
-                    <button disabled className="w-full py-4 rounded-2xl border-2 border-[#5A5A40]/10 text-[#5A5A40]/40 font-bold">
-                      {t('upgrade.currentPlan')}
+                    <button className="w-full py-4 rounded-2xl border-2 border-[#5A5A40] text-[#5A5A40] font-bold hover:bg-[#5A5A40] hover:text-white transition-all">
+                      {t('upgrade.upgradeNow')}
                     </button>
                   </div>
 
-                  {/* Premium Plan */}
+                  {/* Annual Plan */}
                   <div className="bg-[#5A5A40] p-8 rounded-[40px] text-white shadow-2xl flex flex-col relative overflow-hidden">
                     <div className="absolute top-0 right-0 bg-emerald-500 px-6 py-2 rounded-bl-3xl text-[10px] font-bold uppercase tracking-widest">
                       {t('upgrade.recommended')}
                     </div>
                     <div className="mb-8">
-                      <h3 className="text-2xl font-serif mb-2">{t('upgrade.premiumTitle')}</h3>
+                      <h3 className="text-2xl font-serif mb-2">{t('upgrade.annualTitle')}</h3>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-bold">{t('upgrade.premiumPrice')}</span>
-                        <span className="text-white/60">{t('upgrade.premiumPeriod')}</span>
+                        <span className="text-4xl font-bold">{t('upgrade.annualPrice')}</span>
+                        <span className="text-white/60">{t('upgrade.annualPeriod')}</span>
                       </div>
+                      <p className="text-white/60 text-sm mt-1">{t('upgrade.annualSubtext')}</p>
                     </div>
                     <ul className="flex-1 space-y-4 mb-8">
                       <li className="flex items-center gap-3">
