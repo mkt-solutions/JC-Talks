@@ -18,7 +18,8 @@ import {
   ChevronLeft,
   Home as HomeIcon,
   Share2,
-  Clock
+  Clock,
+  Loader2
 } from 'lucide-react';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import Markdown from 'react-markdown';
@@ -131,6 +132,9 @@ export default function App() {
     gender: 'male',
     language: (navigator.language.split('-')[0] as Language) || 'en'
   });
+
+  const [onboardingError, setOnboardingError] = useState<string | null>(null);
+  const [isSavingOnboarding, setIsSavingOnboarding] = useState(false);
 
   const [sessionStartTime] = useState(new Date());
   const [sessionDuration, setSessionDuration] = useState(0);
@@ -285,31 +289,43 @@ export default function App() {
   const handleOnboarding = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session) return;
+    setIsSavingOnboarding(true);
+    setOnboardingError(null);
+
     const id = session.user.id;
     const dob = `${onboarding.dobYear}-${onboarding.dobMonth.padStart(2, '0')}-${onboarding.dobDay.padStart(2, '0')}`;
     
     const profileData = {
       id,
       name: onboarding.name,
+      email: session.user.email,
       dob,
       gender: onboarding.gender,
       language: onboarding.language,
       updated_at: new Date().toISOString()
     };
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .upsert(profileData)
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .upsert(profileData)
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Error saving profile:', error);
-      return;
+      if (error) {
+        console.error('Error saving profile:', error);
+        setOnboardingError(error.message);
+        return;
+      }
+
+      setUser(data);
+      setActiveTab('home');
+    } catch (err: any) {
+      console.error('Unexpected error in onboarding:', err);
+      setOnboardingError(err.message || 'An unexpected error occurred');
+    } finally {
+      setIsSavingOnboarding(false);
     }
-
-    setUser(data);
-    setActiveTab('home');
   };
 
   const handleUpdateLanguage = async (newLang: Language) => {
@@ -510,11 +526,24 @@ export default function App() {
               </select>
             </div>
 
+            {onboardingError && (
+              <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-sm text-center">
+                {onboardingError}
+              </div>
+            )}
+
             <button
               type="submit"
-              className="w-full bg-[#5A5A40] text-white py-4 rounded-full font-bold text-lg hover:bg-[#4A4A30] transition-colors flex items-center justify-center gap-2 group"
+              disabled={isSavingOnboarding}
+              className="w-full bg-[#5A5A40] text-white py-4 rounded-full font-bold text-lg hover:bg-[#4A4A30] transition-colors flex items-center justify-center gap-2 group disabled:opacity-50"
             >
-              {t('onboarding.begin')} <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              {isSavingOnboarding ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  {t('onboarding.begin')} <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
             </button>
           </form>
         </motion.div>

@@ -2,6 +2,7 @@
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id),
   name TEXT,
+  email TEXT,
   dob DATE,
   gender TEXT,
   language TEXT DEFAULT 'en',
