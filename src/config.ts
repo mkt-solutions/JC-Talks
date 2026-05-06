@@ -1,7 +1,10 @@
 export const CONFIG = {
-  SUPABASE_URL: (import.meta as any).env.VITE_SUPABASE_URL || (import.meta as any).env.SUPABASE_URL || "",
-  SUPABASE_ANON_KEY: (import.meta as any).env.VITE_SUPABASE_ANON_KEY || (import.meta as any).env.SUPABASE_ANON_KEY || "",
-  GEMINI_API_KEY: (import.meta as any).env.VITE_GEMINI_API_KEY || (import.meta as any).env.GEMINI_API_KEY || ""
+  // @ts-ignore
+  SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL || import.meta.env.SUPABASE_URL || "",
+  // @ts-ignore
+  SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.SUPABASE_ANON_KEY || "",
+  // @ts-ignore
+  GEMINI_API_KEY: import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY || ""
 };
 
 if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY) {
