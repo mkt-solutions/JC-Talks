@@ -27,6 +27,9 @@ import { TRANSLATIONS } from './translations';
 import { getJesusResponse, getBibleSuggestion } from './services/geminiService';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { supabase } from './lib/supabase';
+import { Auth } from './components/Auth';
+import { Session } from '@supabase/supabase-js';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -108,6 +111,7 @@ const BIBLE_MESSAGES: Record<Language, { text: string; ref: string }[]> = {
 };
 
 export default function App() {
+  const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -178,30 +182,85 @@ export default function App() {
   const dailyMessage = dailyMessageList[new Date().getDate() % dailyMessageList.length];
 
   useEffect(() => {
-    const savedUserId = localStorage.getItem('jctalks_user_id');
-    if (savedUserId) {
-      fetch(`/api/user/${savedUserId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (!data.error) setUser(data);
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        fetchUser(session.user.id);
+      } else {
+        setLoading(false);
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) {
+        fetchUser(session.user.id);
+      } else {
+        setUser(null);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (user && messages.length === 0) {
-      // Trigger initial greeting in user's language
-      setIsTyping(true);
-      getJesusResponse([], user)
-        .then(response => {
-          setMessages([{ role: 'assistant', content: response }]);
-        })
-        .finally(() => setIsTyping(false));
+  const fetchUser = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // Profile not found, this is fine, user will go to onboarding
+          setUser(null);
+        } else {
+          throw error;
+        }
+      } else {
+        setUser(data);
+      }
+    } catch (err) {
+      console.error('Error fetching user:', err);
+    } finally {
+      setLoading(false);
     }
-  }, [user]);
+  };
+
+  useEffect(() => {
+    if (session && user) {
+      // Fetch messages from Supabase
+      supabase
+        .from('messages')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: true })
+        .then(({ data, error }) => {
+          if (!error && data && data.length > 0) {
+            setMessages(data.map(m => ({ role: m.role, content: m.content })));
+          } else if (messages.length === 0) {
+            // Initial greeting if no messages yet
+            setIsTyping(true);
+            getJesusResponse([], user)
+              .then(response => {
+                const welcomeMsg = { role: 'assistant' as const, content: response };
+                setMessages([welcomeMsg]);
+                // Save welcome message
+                supabase.from('messages').insert({
+                  user_id: session.user.id,
+                  role: 'assistant',
+                  content: response
+                }).then();
+              })
+              .finally(() => setIsTyping(false));
+          }
+        });
+    }
+  }, [session, user]);
 
   useEffect(() => {
     const scrollToBottom = () => {
@@ -218,28 +277,47 @@ export default function App() {
 
   const handleOnboarding = async (e: React.FormEvent) => {
     e.preventDefault();
-    const id = Math.random().toString(36).substring(2, 15);
+    if (!session) return;
+    const id = session.user.id;
     const dob = `${onboarding.dobYear}-${onboarding.dobMonth.padStart(2, '0')}-${onboarding.dobDay.padStart(2, '0')}`;
-    const res = await fetch('/api/user', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, ...onboarding, dob })
-    });
-    const data = await res.json();
-    localStorage.setItem('jctalks_user_id', id);
+    
+    const profileData = {
+      id,
+      name: onboarding.name,
+      dob,
+      gender: onboarding.gender,
+      language: onboarding.language,
+      updated_at: new Date().toISOString()
+    };
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert(profileData)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error saving profile:', error);
+      return;
+    }
+
     setUser(data);
     setActiveTab('home');
   };
 
   const handleUpdateLanguage = async (newLang: Language) => {
-    if (!user) return;
-    const res = await fetch('/api/user', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...user, language: newLang })
-    });
-    const data = await res.json();
-    setUser(data);
+    if (!user || !session) return;
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ language: newLang })
+      .eq('id', session.user.id)
+      .select()
+      .single();
+
+    if (!error) {
+      setUser(data);
+    }
   };
 
   const handleShare = (text: string, ref: string | null, platform: 'whatsapp' | 'telegram') => {
@@ -268,12 +346,32 @@ export default function App() {
 
     const userMessage: Message = { role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
+    
+    // Save user message to Supabase
+    if (session) {
+      supabase.from('messages').insert({
+        user_id: session.user.id,
+        role: 'user',
+        content: input
+      }).then();
+    }
+
     setInput('');
     setIsTyping(true);
 
     try {
       const response = await getJesusResponse([...messages, userMessage], user);
-      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+      const assistantMessage: Message = { role: 'assistant', content: response };
+      setMessages(prev => [...prev, assistantMessage]);
+      
+      // Save assistant message to Supabase
+      if (session) {
+        supabase.from('messages').insert({
+          user_id: session.user.id,
+          role: 'assistant',
+          content: response
+        }).then();
+      }
     } catch (error) {
       console.error(error);
       setMessages(prev => [...prev, { role: 'assistant', content: t('chat.error') }]);
@@ -295,6 +393,10 @@ export default function App() {
         </motion.div>
       </div>
     );
+  }
+
+  if (!session) {
+    return <Auth onAuthSuccess={setSession} t={t} lang={user?.language as Language || onboarding.language as Language || 'en'} />;
   }
 
   if (!user) {
@@ -489,9 +591,9 @@ export default function App() {
                 </button>
                 <div className="h-px bg-[#5A5A40]/10 my-4" />
                 <button 
-                  onClick={() => {
-                    localStorage.removeItem('jctalks_user_id');
-                    window.location.reload();
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    setIsMenuOpen(false);
                   }}
                   className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-red-50 transition-colors text-red-600"
                 >
@@ -1017,13 +1119,12 @@ export default function App() {
               </button>
               
               <button 
-                onClick={() => {
-                  localStorage.removeItem('jctalks_user_id');
-                  window.location.reload();
+                onClick={async () => {
+                  await supabase.auth.signOut();
                 }}
                 className="text-sm text-[#5A5A40] hover:underline"
               >
-                Sign out
+                {t('nav.logout')}
               </button>
             </motion.div>
           </motion.div>
