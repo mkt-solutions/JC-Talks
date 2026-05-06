@@ -182,14 +182,21 @@ export default function App() {
   const dailyMessage = dailyMessageList[new Date().getDate() % dailyMessageList.length];
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        fetchUser(session.user.id);
-      } else {
+    const initSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+        if (session) {
+          await fetchUser(session.user.id);
+        }
+      } catch (err) {
+        console.error('Supabase init error:', err);
+      } finally {
         setLoading(false);
       }
-    });
+    };
+
+    initSession();
 
     const {
       data: { subscription },

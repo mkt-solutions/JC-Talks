@@ -1,7 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
 import { Message, User, LANGUAGES, Language } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+// @ts-ignore
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || "" });
 
 function calculateAge(dob: string): number {
   const birthDate = new Date(dob);
