@@ -135,10 +135,52 @@ export default function App() {
 
   const [onboardingError, setOnboardingError] = useState<string | null>(null);
   const [isSavingOnboarding, setIsSavingOnboarding] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    dob: ''
+  });
 
   const [sessionStartTime] = useState(new Date());
   const [sessionDuration, setSessionDuration] = useState(0);
   const [hasSentBibleSuggestion, setHasSentBibleSuggestion] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setEditForm({
+        name: user.name || '',
+        dob: user.dob || ''
+      });
+    }
+  }, [user]);
+
+  const handleUpdateProfile = async () => {
+    if (!session || !user) return;
+    setIsSavingOnboarding(true);
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({
+          name: editForm.name,
+          dob: editForm.dob,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setUser(data);
+      setIsEditingProfile(false);
+    } catch (err: any) {
+      console.error('Error updating profile:', err);
+      alert(err.message || 'Error updating profile');
+    } finally {
+      setIsSavingOnboarding(false);
+    }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -910,12 +952,31 @@ export default function App() {
             >
               <div className="max-w-2xl mx-auto space-y-8">
                 <div className="flex flex-col items-center text-center gap-4">
-                  <div className="w-24 h-24 rounded-full bg-[#5A5A40]/10 flex items-center justify-center">
+                  <div className="w-24 h-24 rounded-full bg-[#5A5A40]/10 flex items-center justify-center relative">
                     <UserIcon className="w-12 h-12 text-[#5A5A40]" />
+                    {!isEditingProfile && (
+                      <button 
+                        onClick={() => setIsEditingProfile(true)}
+                        className="absolute -bottom-1 -right-1 bg-white p-2 rounded-full shadow-md border border-[#5A5A40]/10 hover:bg-[#F5F2ED] transition-colors"
+                        title={t('profile.edit')}
+                      >
+                        <Sparkles className="w-4 h-4 text-[#5A5A40]" />
+                      </button>
+                    )}
                   </div>
                   <div>
-                    <h2 className="text-3xl font-serif">{user.name}</h2>
-                    <p className="text-[#5A5A40]/60">{t('profile.memberSince')} {format(parseISO(user.trial_start_date), 'MMMM yyyy')}</p>
+                    {isEditingProfile ? (
+                      <input
+                        type="text"
+                        className="text-3xl font-serif text-center bg-[#F5F2ED] border-b-2 border-[#5A5A40] focus:outline-none px-4 py-1"
+                        value={editForm.name}
+                        onChange={e => setEditForm({ ...editForm, name: e.target.value })}
+                        autoFocus
+                      />
+                    ) : (
+                      <h2 className="text-3xl font-serif">{user.name}</h2>
+                    )}
+                    <p className="text-[#5A5A40]/60 mt-1">{t('profile.memberSince')} {format(parseISO(user.trial_start_date), 'MMMM yyyy')}</p>
                   </div>
                 </div>
 
@@ -925,7 +986,16 @@ export default function App() {
                       <Calendar className="w-4 h-4" />
                       <span>{t('profile.birthday')}</span>
                     </div>
-                    <p className="text-lg">{format(parseISO(user.dob), 'PPP')}</p>
+                    {isEditingProfile ? (
+                      <input
+                        type="date"
+                        className="w-full text-lg bg-[#F5F2ED] rounded-xl px-4 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-[#5A5A40]"
+                        value={editForm.dob}
+                        onChange={e => setEditForm({ ...editForm, dob: e.target.value })}
+                      />
+                    ) : (
+                      <p className="text-lg">{format(parseISO(user.dob), 'PPP')}</p>
+                    )}
                   </div>
                   <div className="bg-white p-6 rounded-3xl border border-[#5A5A40]/10 shadow-sm space-y-2">
                     <div className="flex items-center gap-2 text-[#5A5A40]/60 text-sm uppercase tracking-widest font-bold">
@@ -943,6 +1013,24 @@ export default function App() {
                     </select>
                   </div>
                 </div>
+
+                {isEditingProfile && (
+                  <div className="flex gap-4">
+                    <button
+                      onClick={handleUpdateProfile}
+                      disabled={isSavingOnboarding}
+                      className="flex-1 bg-[#5A5A40] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#4A4A30] transition-colors disabled:opacity-50"
+                    >
+                      {isSavingOnboarding ? <Loader2 className="w-5 h-5 animate-spin" /> : t('profile.save')}
+                    </button>
+                    <button
+                      onClick={() => setIsEditingProfile(false)}
+                      className="flex-1 bg-white text-[#5A5A40] py-4 rounded-2xl font-bold border border-[#5A5A40]/10 hover:bg-[#F5F2ED] transition-colors"
+                    >
+                      {t('profile.cancel')}
+                    </button>
+                  </div>
+                )}
 
                 <div className="bg-[#5A5A40] text-white p-8 rounded-[32px] shadow-lg space-y-4">
                   <div className="flex items-center justify-between">

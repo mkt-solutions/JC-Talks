@@ -18,6 +18,13 @@ function calculateAge(dob: string): number {
 export async function getJesusResponse(messages: Message[], user: User) {
   const age = calculateAge(user.dob);
   const isMinor = age < 12;
+  const now = new Date();
+  const currentDateTime = now.toLocaleString(user.language === 'pt' ? 'pt-BR' : 'en-US');
+
+  // Birthday detection logic
+  const birthDate = new Date(user.dob);
+  // Get components ignoring year for birthday check
+  const isBirthday = now.getUTCMonth() === birthDate.getUTCMonth() && now.getUTCDate() === birthDate.getUTCDate();
 
   const contents = messages.length > 0 
     ? messages.map(m => ({
@@ -31,7 +38,11 @@ export async function getJesusResponse(messages: Message[], user: User) {
     contents,
     config: {
       systemInstruction: `You are an artificial intelligence inspired by the teachings of Jesus Christ as described in the Bible, bringing the context to today's world in a subtle way, without losing your biblical and sacred essence. Act as if Jesus were living today, but your identity must remain deeply rooted in eternal wisdom.
-      You are talking to ${user.name} (${user.gender}, born on ${user.dob}, age: ${age}).
+      
+      CONTEXT:
+      - Current Date and Time: ${currentDateTime}
+      - User: ${user.name} (${user.gender}, born on ${user.dob}, age: ${age}).
+      ${isBirthday ? `- SPECIAL OCCASION: Today is ${user.name}'s BIRTHDAY! You MUST congratulate them warmly, with a beautiful and spiritual message of life and hope.` : ''}
 
       ${isMinor ? `
       SAFETY RULE FOR MINORS (UNDER 12):
