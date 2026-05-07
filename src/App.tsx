@@ -1072,7 +1072,7 @@ export default function App() {
               <div className="max-w-4xl mx-auto space-y-12">
                 <div className="text-center space-y-4">
                   <h2 className="text-4xl font-serif">{t('upgrade.title')}</h2>
-                  <p className="text-[#5A5A40]/60 max-w-lg mx-auto">{t('upgrade.subtitle')}</p>
+                  <p className="text-[#5A5A40] text-lg max-w-xl mx-auto">{t('upgrade.subtitle')}</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -1089,19 +1089,19 @@ export default function App() {
                       )}
                     </div>
                     <ul className="flex-1 space-y-4 mb-8">
-                      <li className="flex items-center gap-3 text-[#5A5A40]/80">
+                      <li className="flex items-center gap-3 text-[#1A1A1A]">
                         <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
                           <Sparkles className="w-3 h-3 text-emerald-600" />
                         </div>
                         <span>{t('upgrade.features.unlimited')}</span>
                       </li>
-                      <li className="flex items-center gap-3 text-[#5A5A40]/80">
+                      <li className="flex items-center gap-3 text-[#1A1A1A]">
                         <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
                           <Sparkles className="w-3 h-3 text-emerald-600" />
                         </div>
                         <span>{t('upgrade.features.blessings')}</span>
                       </li>
-                      <li className="flex items-center gap-3 text-[#5A5A40]/80">
+                      <li className="flex items-center gap-3 text-[#1A1A1A]">
                         <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
                           <Sparkles className="w-3 h-3 text-emerald-600" />
                         </div>
@@ -1131,19 +1131,19 @@ export default function App() {
                         <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
                           <Sparkles className="w-3 h-3 text-white" />
                         </div>
-                        <span>{t('upgrade.features.unlimited')}</span>
+                        <span className="font-medium">{t('upgrade.features.unlimited')}</span>
                       </li>
                       <li className="flex items-center gap-3">
                         <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
                           <Sparkles className="w-3 h-3 text-white" />
                         </div>
-                        <span>{t('upgrade.features.blessings')}</span>
+                        <span className="font-medium">{t('upgrade.features.blessings')}</span>
                       </li>
-                      <li className="flex items-center gap-3">
+                      <li className="flex items-center gap-3 text-white">
                         <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
                           <Sparkles className="w-3 h-3 text-white" />
                         </div>
-                        <span>{t('upgrade.features.priority')}</span>
+                        <span className="font-medium">{t('upgrade.features.priority')}</span>
                       </li>
                     </ul>
                     <button className="w-full py-4 rounded-2xl bg-white text-[#5A5A40] font-bold hover:bg-opacity-90 transition-all shadow-lg">
@@ -1152,11 +1152,36 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="bg-[#F5F2ED] p-8 rounded-[32px] flex items-start gap-4">
-                  <Info className="w-6 h-6 text-[#5A5A40] flex-shrink-0" />
-                  <div className="space-y-2">
-                    <h4 className="font-bold">{t('upgrade.whyUpgrade')}</h4>
-                    <p className="text-sm text-[#5A5A40]/70">{t('upgrade.supportText')}</p>
+                <div className="bg-white p-10 rounded-[40px] border-2 border-[#5A5A40]/10 shadow-xl flex flex-col items-center text-center gap-6">
+                  <div className="w-20 h-20 bg-[#5A5A40]/10 rounded-full flex items-center justify-center">
+                    <Heart className="w-10 h-10 text-[#5A5A40]" />
+                  </div>
+                  <div className="space-y-4 max-w-2xl">
+                    <h3 className="text-3xl font-serif text-[#1A1A1A]">{t('upgrade.whyUpgrade')}</h3>
+                    <p className="text-xl text-[#5A5A40] leading-relaxed italic">
+                      "{t('upgrade.supportText')}"
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-12 border-t border-[#5A5A40]/10 flex flex-col md:flex-row gap-12 text-left pb-12">
+                  <div className="flex-1 space-y-4">
+                    <div className="flex items-center gap-2 text-[#5A5A40] font-bold uppercase tracking-widest text-xs">
+                      <ShieldCheck className="w-4 h-4" />
+                      {t('upgrade.legal.terms')}
+                    </div>
+                    <p className="text-sm text-[#5A5A40]/60 leading-relaxed italic">
+                      {t('upgrade.legal.termsText')}
+                    </p>
+                  </div>
+                  <div className="flex-1 space-y-4">
+                    <div className="flex items-center gap-2 text-[#5A5A40] font-bold uppercase tracking-widest text-xs">
+                      <Info className="w-4 h-4" />
+                      {t('upgrade.legal.notice')}
+                    </div>
+                    <p className="text-sm text-[#5A5A40]/60 leading-relaxed italic">
+                      {t('upgrade.legal.noticeText')}
+                    </p>
                   </div>
                 </div>
               </div>
