@@ -136,6 +136,8 @@ export default function App() {
   const [onboardingError, setOnboardingError] = useState<string | null>(null);
   const [isSavingOnboarding, setIsSavingOnboarding] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
   const [editForm, setEditForm] = useState({
     name: '',
     dob: ''
@@ -177,6 +179,32 @@ export default function App() {
     } catch (err: any) {
       console.error('Error updating profile:', err);
       alert(err.message || 'Error updating profile');
+    } finally {
+      setIsSavingOnboarding(false);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    if (!session) return;
+    if (newPassword.length < 6) {
+      alert('Password must be at least 6 characters');
+      return;
+    }
+    setIsSavingOnboarding(true);
+    
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      alert('Password updated successfully');
+      setIsChangingPassword(false);
+      setNewPassword('');
+    } catch (err: any) {
+      console.error('Error updating password:', err);
+      alert(err.message || 'Error updating password');
     } finally {
       setIsSavingOnboarding(false);
     }
@@ -952,17 +980,8 @@ export default function App() {
             >
               <div className="max-w-2xl mx-auto space-y-8">
                 <div className="flex flex-col items-center text-center gap-4">
-                  <div className="w-24 h-24 rounded-full bg-[#5A5A40]/10 flex items-center justify-center relative">
+                  <div className="w-24 h-24 rounded-full bg-[#5A5A40]/10 flex items-center justify-center">
                     <UserIcon className="w-12 h-12 text-[#5A5A40]" />
-                    {!isEditingProfile && (
-                      <button 
-                        onClick={() => setIsEditingProfile(true)}
-                        className="absolute -bottom-1 -right-1 bg-white p-2 rounded-full shadow-md border border-[#5A5A40]/10 hover:bg-[#F5F2ED] transition-colors"
-                        title={t('profile.edit')}
-                      >
-                        <Sparkles className="w-4 h-4 text-[#5A5A40]" />
-                      </button>
-                    )}
                   </div>
                   <div>
                     {isEditingProfile ? (
@@ -1014,23 +1033,79 @@ export default function App() {
                   </div>
                 </div>
 
-                {isEditingProfile && (
-                  <div className="flex gap-4">
-                    <button
-                      onClick={handleUpdateProfile}
-                      disabled={isSavingOnboarding}
-                      className="flex-1 bg-[#5A5A40] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#4A4A30] transition-colors disabled:opacity-50"
-                    >
-                      {isSavingOnboarding ? <Loader2 className="w-5 h-5 animate-spin" /> : t('profile.save')}
-                    </button>
-                    <button
-                      onClick={() => setIsEditingProfile(false)}
-                      className="flex-1 bg-white text-[#5A5A40] py-4 rounded-2xl font-bold border border-[#5A5A40]/10 hover:bg-[#F5F2ED] transition-colors"
-                    >
-                      {t('profile.cancel')}
-                    </button>
-                  </div>
-                )}
+                <div className="flex flex-col gap-4">
+                  {!isEditingProfile && !isChangingPassword && (
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <button
+                        onClick={() => setIsEditingProfile(true)}
+                        className="flex-1 bg-white text-[#5A5A40] py-4 rounded-2xl font-bold border border-[#5A5A40]/10 hover:bg-[#F5F2ED] transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Sparkles className="w-5 h-5" />
+                        {t('profile.edit')}
+                      </button>
+                      <button
+                        onClick={() => setIsChangingPassword(true)}
+                        className="flex-1 bg-white text-[#5A5A40] py-4 rounded-2xl font-bold border border-[#5A5A40]/10 hover:bg-[#F5F2ED] transition-colors flex items-center justify-center gap-2"
+                      >
+                        <ShieldCheck className="w-5 h-5" />
+                        {t('profile.changePassword')}
+                      </button>
+                    </div>
+                  )}
+
+                  {isEditingProfile && (
+                    <div className="flex gap-4">
+                      <button
+                        onClick={handleUpdateProfile}
+                        disabled={isSavingOnboarding}
+                        className="flex-1 bg-[#5A5A40] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#4A4A30] transition-colors disabled:opacity-50"
+                      >
+                        {isSavingOnboarding ? <Loader2 className="w-5 h-5 animate-spin" /> : t('profile.save')}
+                      </button>
+                      <button
+                        onClick={() => setIsEditingProfile(false)}
+                        className="flex-1 bg-white text-[#5A5A40] py-4 rounded-2xl font-bold border border-[#5A5A40]/10 hover:bg-[#F5F2ED] transition-colors"
+                      >
+                        {t('profile.cancel')}
+                      </button>
+                    </div>
+                  )}
+
+                  {isChangingPassword && (
+                    <div className="bg-white p-6 rounded-3xl border border-[#5A5A40]/10 shadow-sm space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-[#5A5A40]/60 text-sm uppercase tracking-widest font-bold block">
+                          {t('profile.newPassword')}
+                        </label>
+                        <input
+                          type="password"
+                          className="w-full text-lg bg-[#F5F2ED] rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#5A5A40]"
+                          value={newPassword}
+                          onChange={e => setNewPassword(e.target.value)}
+                          placeholder="••••••••"
+                        />
+                      </div>
+                      <div className="flex gap-4">
+                        <button
+                          onClick={handleUpdatePassword}
+                          disabled={isSavingOnboarding}
+                          className="flex-1 bg-[#5A5A40] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#4A4A30] transition-colors disabled:opacity-50"
+                        >
+                          {isSavingOnboarding ? <Loader2 className="w-5 h-5 animate-spin" /> : t('profile.save')}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsChangingPassword(false);
+                            setNewPassword('');
+                          }}
+                          className="flex-1 bg-white text-[#5A5A40] py-4 rounded-2xl font-bold border border-[#5A5A40]/10 hover:bg-[#F5F2ED] transition-colors"
+                        >
+                          {t('profile.cancel')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 <div className="bg-[#5A5A40] text-white p-8 rounded-[32px] shadow-lg space-y-4">
                   <div className="flex items-center justify-between">
