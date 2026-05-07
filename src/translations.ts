@@ -95,6 +95,8 @@ export const TRANSLATIONS: Record<Language, any> = {
       signIn: "Sign In",
       signUp: "Create Account",
       error: "Authentication failed. Please check your credentials.",
+      emailVerification: "Please check your email to confirm your account. After confirming, you can log in.",
+      resendEmail: "Resend verification email",
       welcome: "Welcome Back",
       join: "Join JC Talks"
     },
@@ -210,6 +212,8 @@ export const TRANSLATIONS: Record<Language, any> = {
       signIn: "Entrar",
       signUp: "Criar Conta",
       error: "Falha na autenticação. Verifique suas credenciais.",
+      emailVerification: "Por favor, verifique seu e-mail para confirmar sua conta. Após confirmar, você poderá entrar.",
+      resendEmail: "Reenviar e-mail de confirmação",
       welcome: "Bem-vindo de volta",
       join: "Junte-se ao JC Talks"
     },

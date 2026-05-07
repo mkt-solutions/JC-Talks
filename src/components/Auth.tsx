@@ -39,7 +39,8 @@ export function Auth({ onAuthSuccess, t, lang }: AuthProps) {
         if (data.session) {
           onAuthSuccess(data.session);
         } else {
-          setError('Check your email for confirmation link.');
+          setError(t('auth.emailVerification'));
+          setIsLogin(true); // Switch to login so they can try to sign in after confirming
         }
       }
     } catch (err: any) {
